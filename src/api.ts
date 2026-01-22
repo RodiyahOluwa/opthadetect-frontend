@@ -1,7 +1,7 @@
 // src/api.ts
 import axios from "axios";
 
-export const API_BASE = "http://localhost:8000";
+export const API_BASE = "https://opthadetect.onrender.com";
 
 export interface LoginResponse {
   access_token: string;
