@@ -1,7 +1,7 @@
 // src/api.ts
 import axios from "axios";
 
-export const API_BASE = "https://opthadetect.onrender.com";
+export const API_BASE = "";
 
 export interface LoginResponse {
   access_token: string;
@@ -51,12 +51,13 @@ export interface ScanRecord {
 }
 
 export async function login(email: string, password: string) {
-  const res = await axios.post<LoginResponse>(`${API_BASE}/auth/login`, {
-    email,
-    password,
-  });
+  const res = await axios.post<LoginResponse>(
+    "/auth/login",
+    { email, password }
+  );
   return res.data;
 }
+
 
 
 export async function predict(
