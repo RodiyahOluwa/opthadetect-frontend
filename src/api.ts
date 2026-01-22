@@ -79,8 +79,8 @@ export async function predict(
     formData.append("eye", eye);
   }
 
-  const res = await axios.post<PredictionResponse>(
-    `${API_BASE}/predict?token=${token}`,
+const res = await axios.post<PredictionResponse>(
+  `/predict?token=${token}`,
     formData,
     {
       headers: { "Content-Type": "multipart/form-data" },
@@ -91,16 +91,19 @@ export async function predict(
 
 
 export async function downloadReport(scanId: number, token: string) {
-  const res = await axios.get(`${API_BASE}/report/${scanId}?token=${token}`, {
-    responseType: "blob",
-  });
+  const res = await axios.get(
+    `/report/${scanId}?token=${token}`,
+    { responseType: "blob" }
+  );
   return res.data;
 }
+
 
 
 export async function fetchRecords(token: string) {
   const res = await axios.get<ScanRecord[]>(
-    `${API_BASE}/records?token=${token}`
+    `/records?token=${token}`
   );
   return res.data;
 }
+
