@@ -1,8 +1,9 @@
 // src/App.tsx
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import "./App.css";
 import LandingPage from "./LandingPage";
 import AdminDashboard from "./AdminDashboard";
+import TeamPage from "./TeamPage";
 
 import {
   API_BASE,
@@ -13,23 +14,31 @@ import {
   fetchRecords,
   downloadReport,
   deleteScan,
+  forgotPassword,
+  resetPassword,
 } from "./api";
 import type { PredictionResponse, ScanRecord } from "./api";
 
-type Page = "landing" | "app" | "admin";
+type Page = "landing" | "app" | "admin" | "team";   
 
 function App() {
-  const [page, setPage] = useState<Page>(() => {
-    // If already logged in skip landing
-    return localStorage.getItem("optha_token") ? "app" : "landing";
-  });
+  const [page, setPage] = useState<Page>("landing");
+  const [token, setToken] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string>("clinician");
 
-  const [token, setToken] = useState<string | null>(() =>
-    localStorage.getItem("optha_token")
-  );
-  const [userRole, setUserRole] = useState<string>(() =>
-    localStorage.getItem("optha_role") || "clinician"
-  );
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotMessage, setForgotMessage] = useState<string | null>(null);
+  const [forgotLoading, setForgotLoading] = useState(false);
+
+  const [resetMessage, setResetMessage] = useState<string | null>(null);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+
+  const resetToken = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("token") || "";
+  }, []);
 
   // Auth form state
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
@@ -59,34 +68,37 @@ function App() {
 
   // -------- AUTH --------
   const handleAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setAuthError(null);
-    setLoadingAuth(true);
-    try {
-      const data = authMode === "login"
-        ? await login(email, password)
-        : await register(email, password);
+  e.preventDefault();
+  setAuthError(null);
+  setLoadingAuth(true);
 
+  try {
+    if (authMode === "login") {
+      const data = await login(email, password);
       setToken(data.access_token);
       setUserRole(data.role);
-      localStorage.setItem("optha_token", data.access_token);
-      localStorage.setItem("optha_role", data.role);
+      setShowForgotPassword(false);
+      setForgotMessage(null);
 
       const records = await fetchRecords(data.access_token);
       setHistory(Array.isArray(records) ? records : []);
-    } catch (err: any) {
-      const detail = err?.response?.data?.detail;
-      setAuthError(
-        detail
-          ? String(detail)
-          : authMode === "login"
-          ? "Login failed. Check your credentials."
-          : "Registration failed. Email may already be in use."
-      );
-    } finally {
-      setLoadingAuth(false);
+    } else {
+      const res = await register(email, password);
+      setAuthError(res.detail);
     }
-  };
+  } catch (err: any) {
+    const detail = err?.response?.data?.detail;
+    setAuthError(
+      detail
+        ? String(detail)
+        : authMode === "login"
+        ? "Login failed. Check your credentials."
+        : "Registration failed."
+    );
+  } finally {
+    setLoadingAuth(false);
+  }
+};
 
   const handleLogout = async () => {
     if (token) await logout(token).catch(() => {});
@@ -96,8 +108,6 @@ function App() {
     setHistory([]);
     setPreviewUrl(null);
     setSelectedScan(null);
-    localStorage.removeItem("optha_token");
-    localStorage.removeItem("optha_role");
   };
 
   // -------- UPLOAD --------
@@ -113,16 +123,56 @@ function App() {
     if (!file || !token) return;
     setLoadingPredict(true);
     setError(null);
+
     try {
       const data = await predict(file, token, patientName, patientId, patientAge, eye);
       setPrediction(data);
       setSelectedScan(null);
+
       const records = await fetchRecords(token);
       setHistory(Array.isArray(records) ? records : []);
     } catch {
       setError("Prediction failed. Ensure the backend is running and try again.");
     } finally {
       setLoadingPredict(false);
+    }
+  };
+
+  // -------- PASSWORD RESET --------
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setForgotLoading(true);
+    setForgotMessage(null);
+
+    try {
+      const res = await forgotPassword(forgotEmail);
+      setForgotMessage(res.detail);
+    } catch {
+      setForgotMessage("Something went wrong. Please try again.");
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetLoading(true);
+    setResetMessage(null);
+
+    try {
+      const res = await resetPassword(resetToken, newPassword);
+      setResetMessage(res.detail);
+
+      if (res.detail.toLowerCase().includes("successful")) {
+        window.history.replaceState({}, "", "/");
+        setShowForgotPassword(false);
+        setNewPassword("");
+      }
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail;
+      setResetMessage(detail || "Could not reset password.");
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -148,6 +198,7 @@ function App() {
   const handleDeleteScan = async (id: number) => {
     if (!token) return;
     if (!confirm("Permanently delete this scan and all associated images? This cannot be undone.")) return;
+
     setDeletingId(id);
     try {
       await deleteScan(id, token);
@@ -167,6 +218,7 @@ function App() {
   // -------- REPORT --------
   const handleDownloadReport = async () => {
     if (!token || !prediction?.scan_id) return;
+
     try {
       const blob = await downloadReport(prediction.scan_id, token);
       const url = window.URL.createObjectURL(blob);
@@ -182,22 +234,59 @@ function App() {
     }
   };
 
-  // -------- INITIAL LOAD --------
-  useEffect(() => {
-    const tok = localStorage.getItem("optha_token");
-    if (!tok) return;
-    fetchRecords(tok)
-      .then((r) => setHistory(Array.isArray(r) ? r : []))
-      .catch(console.error);
-  }, []);
+  // -------- RESET PASSWORD PAGE --------
+  if (resetToken) {
+    return (
+      <div className="page">
+        <header className="topbar">
+          <div className="topbar-left">
+            <div className="logo">OD</div>
+            <div>
+              <div className="title">OpthaDetect</div>
+              <div className="subtitle">Reset password</div>
+            </div>
+          </div>
+        </header>
+
+        <main className="main">
+          <section className="card auth-card">
+            <h2>Set a new password</h2>
+            <p className="muted">Enter your new password below.</p>
+
+            <form onSubmit={handleResetPassword} className="form">
+              <label className="field">
+                <span>New password</span>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                />
+              </label>
+
+              {resetMessage && <div className="error">{resetMessage}</div>}
+
+              <button type="submit" className="btn-primary" disabled={resetLoading}>
+                {resetLoading ? "Resetting..." : "Reset password"}
+              </button>
+            </form>
+          </section>
+        </main>
+      </div>
+    );
+  }
 
   // -------- ROUTING --------
   if (page === "landing") {
-    return <LandingPage onEnter={() => setPage("app")} />;
+    return <LandingPage onEnter={() => setPage("app")} onTeam={() => setPage("team")} />;
   }
 
   if (page === "admin" && token && userRole === "admin") {
     return <AdminDashboard token={token} onBack={() => setPage("app")} />;
+  }
+
+    if (page === "team") {
+    return <TeamPage onBack={() => setPage("landing")} />;
   }
 
   // -------- MAIN APP --------
@@ -222,7 +311,9 @@ function App() {
                   Admin Dashboard
                 </button>
               )}
-              <button className="btn-outline" onClick={handleLogout}>Logout</button>
+              <button className="btn-outline" onClick={handleLogout}>
+                Logout
+              </button>
             </>
           ) : (
             <span className="hint">Sign in or create an account below</span>
@@ -243,13 +334,20 @@ function App() {
           <div className="auth-mode-toggle">
             <button
               className={"mode-btn" + (authMode === "login" ? " active" : "")}
-              onClick={() => { setAuthMode("login"); setAuthError(null); }}
+              onClick={() => {
+                setAuthMode("login");
+                setAuthError(null);
+              }}
             >
               Sign in
             </button>
             <button
               className={"mode-btn" + (authMode === "register" ? " active" : "")}
-              onClick={() => { setAuthMode("register"); setAuthError(null); }}
+              onClick={() => {
+                setAuthMode("register");
+                setAuthError(null);
+                setShowForgotPassword(false);
+              }}
             >
               Register
             </button>
@@ -266,6 +364,7 @@ function App() {
                 required
               />
             </label>
+
             <label className="field">
               <span>Password</span>
               <input
@@ -275,6 +374,21 @@ function App() {
                 required
               />
             </label>
+
+            {authMode === "login" && (
+              <button
+                type="button"
+                className="btn-link"
+                onClick={() => {
+                  setShowForgotPassword((prev) => !prev);
+                  setForgotMessage(null);
+                  setForgotEmail(email);
+                }}
+              >
+                Forgot password?
+              </button>
+            )}
+
             <label className="toggle-line">
               <input
                 type="checkbox"
@@ -283,13 +397,39 @@ function App() {
               />
               <span>Show password</span>
             </label>
+
             {authError && <div className="error">{authError}</div>}
+
             <button type="submit" className="btn-primary" disabled={loadingAuth}>
               {loadingAuth
-                ? authMode === "login" ? "Signing in…" : "Registering…"
-                : authMode === "login" ? "Sign in" : "Create account"}
+                ? authMode === "login"
+                  ? "Signing in…"
+                  : "Registering…"
+                : authMode === "login"
+                ? "Sign in"
+                : "Create account"}
             </button>
           </form>
+
+          {showForgotPassword && authMode === "login" && (
+            <form onSubmit={handleForgotPassword} className="form" style={{ marginTop: "12px" }}>
+              <label className="field">
+                <span>Enter your email</span>
+                <input
+                  type="email"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  required
+                />
+              </label>
+
+              {forgotMessage && <div className="error">{forgotMessage}</div>}
+
+              <button type="submit" className="btn-outline" disabled={forgotLoading}>
+                {forgotLoading ? "Sending..." : "Send reset link"}
+              </button>
+            </form>
+          )}
 
           {token && (
             <div className="logged-in-notice">
@@ -309,15 +449,28 @@ function App() {
           <div className="patient-grid">
             <label className="field">
               <span>Patient name</span>
-              <input type="text" value={patientName} onChange={(e) => setPatientName(e.target.value)} />
+              <input
+                type="text"
+                value={patientName}
+                onChange={(e) => setPatientName(e.target.value)}
+              />
             </label>
             <label className="field">
               <span>Patient ID</span>
-              <input type="text" value={patientId} onChange={(e) => setPatientId(e.target.value)} />
+              <input
+                type="text"
+                value={patientId}
+                onChange={(e) => setPatientId(e.target.value)}
+              />
             </label>
             <label className="field">
               <span>Age</span>
-              <input type="number" min={0} value={patientAge} onChange={(e) => setPatientAge(e.target.value)} />
+              <input
+                type="number"
+                min={0}
+                value={patientAge}
+                onChange={(e) => setPatientAge(e.target.value)}
+              />
             </label>
             <label className="field">
               <span>Eye</span>
@@ -344,6 +497,7 @@ function App() {
           >
             {loadingPredict ? "Analysing…" : "Analyse image"}
           </button>
+
           {error && <div className="error">{error}</div>}
         </section>
 
@@ -352,43 +506,68 @@ function App() {
           <h2>Result &amp; Grad-CAM</h2>
           {!prediction ? (
             <p className="muted">
-              After uploading a retinal image and running analysis, the
-              prediction and Grad-CAM heatmap will appear here.
+              After uploading a retinal image and running analysis, the prediction and
+              Grad-CAM heatmap will appear here.
             </p>
           ) : (
             <div className="result">
               <div className="result-header">
-                <span className={"pill " + (prediction.label === "DR" ? "pill-danger" : "pill-safe")}>
-                  {prediction.label === "DR" ? "Diabetic Retinopathy detected" : "No DR detected"}
+                <span
+                  className={"pill " + (prediction.label === "DR" ? "pill-danger" : "pill-safe")}
+                >
+                  {prediction.label === "DR"
+                    ? "Diabetic Retinopathy detected"
+                    : "No DR detected"}
                 </span>
                 <span className="confidence">
                   Confidence: <strong>{prediction.confidence.toFixed(2)}</strong>
                 </span>
               </div>
+
               <div className="timestamp">{prediction.timestamp}</div>
 
-              {(prediction.patient_name || prediction.patient_id || prediction.patient_age || prediction.eye) && (
+              {(prediction.patient_name ||
+                prediction.patient_id ||
+                prediction.patient_age ||
+                prediction.eye) && (
                 <div className="patient-summary">
                   <div>
-                    <strong>Patient:</strong> {prediction.patient_name ?? "—"} ({prediction.patient_id ?? "—"})
+                    <strong>Patient:</strong> {prediction.patient_name ?? "—"} (
+                    {prediction.patient_id ?? "—"})
                   </div>
                   <div>
-                    <strong>Age:</strong> {prediction.patient_age ?? "—"} · <strong>Eye:</strong> {prediction.eye ?? "—"}
+                    <strong>Age:</strong> {prediction.patient_age ?? "—"} ·{" "}
+                    <strong>Eye:</strong> {prediction.eye ?? "—"}
                   </div>
                 </div>
               )}
 
               <div className="gradcam-wrapper">
                 <div className="result-actions">
-                  <button className="btn-outline small" onClick={handleDownloadReport} disabled={!prediction.scan_id || !token}>
+                  <button
+                    className="btn-outline small"
+                    onClick={handleDownloadReport}
+                    disabled={!prediction.scan_id || !token}
+                  >
                     Download PDF report
                   </button>
-                  <a href={`${API_BASE}${prediction.original_url}`} download={`opthadetect_${prediction.timestamp}_original.png`} className="btn-outline small">
+
+                  <a
+                    href={`${API_BASE}${prediction.original_url}`}
+                    download={`opthadetect_${prediction.timestamp}_original.png`}
+                    className="btn-outline small"
+                  >
                     Download original
                   </a>
-                  <a href={`${API_BASE}${prediction.gradcam_url}`} download={`opthadetect_${prediction.timestamp}_gradcam.png`} className="btn-outline small">
+
+                  <a
+                    href={`${API_BASE}${prediction.gradcam_url}`}
+                    download={`opthadetect_${prediction.timestamp}_gradcam.png`}
+                    className="btn-outline small"
+                  >
                     Download Grad-CAM
                   </a>
+
                   {prediction.scan_id && (
                     <button
                       className="btn-outline small btn-delete-scan"
@@ -400,6 +579,7 @@ function App() {
                     </button>
                   )}
                 </div>
+
                 <img src={`${API_BASE}${prediction.gradcam_url}`} alt="Grad-CAM" />
               </div>
             </div>
@@ -419,7 +599,9 @@ function App() {
               {(Array.isArray(history) ? history : []).map((scan) => (
                 <div
                   key={scan.id}
-                  className={"history-item" + (selectedScan?.id === scan.id ? " history-item--active" : "")}
+                  className={
+                    "history-item" + (selectedScan?.id === scan.id ? " history-item--active" : "")
+                  }
                   onClick={() => handleSelectScan(scan)}
                 >
                   <img src={`${API_BASE}${scan.original_url}`} alt="Retina" className="thumb" />
@@ -433,7 +615,10 @@ function App() {
                   </div>
                   <button
                     className="history-delete-btn"
-                    onClick={(e) => { e.stopPropagation(); handleDeleteScan(scan.id); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteScan(scan.id);
+                    }}
                     disabled={deletingId === scan.id}
                     title="Delete scan"
                   >
@@ -447,8 +632,11 @@ function App() {
       </main>
 
       <footer className="footer">
-        OpthaDetect · Prototype ophthalmic decision-support tool. Not approved for independent clinical use.
-        · <a href="#" onClick={() => setPage("landing")}>Privacy Policy</a>
+        OpthaDetect · Prototype ophthalmic decision-support tool. Not approved for
+        independent clinical use. ·{" "}
+        <a href="#" onClick={() => setPage("landing")}>
+          Privacy Policy
+        </a>
       </footer>
     </div>
   );

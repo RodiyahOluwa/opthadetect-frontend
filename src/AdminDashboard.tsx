@@ -143,7 +143,12 @@ export default function AdminDashboard({ token, onBack }: Props) {
                     <td className="td-email">
                       {scan.uploaded_by || "—"}
                       {scan.deleted_by_user && (
-                        <span className="deleted-badge" title="Clinician deleted this — retained for training">🗑 removed by user</span>
+                        <span
+                          className="deleted-badge"
+                          title="Clinician deleted this — retained for training"
+                        >
+                          🗑 removed by user
+                        </span>
                       )}
                     </td>
                     <td>

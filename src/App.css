@@ -97,6 +97,7 @@ body {
 }
 .btn-primary:disabled { background: #93c5fd; cursor: default; }
 .full { width: 100%; margin-top: 10px; }
+
 .btn-outline {
   background: transparent; border: 1px solid #cbd5f5;
   color: #0f172a; border-radius: 999px; padding: 6px 12px;
@@ -104,6 +105,21 @@ body {
 }
 .btn-outline:hover { border-color: #2563eb; }
 .btn-outline.small { padding: 6px 10px; font-size: 12px; }
+
+.btn-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #2563eb;
+  cursor: pointer;
+  font-size: 13px;
+  text-align: left;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
+}
+
 .btn-delete-scan { border-color: #fecaca; color: #b91c1c; }
 .btn-delete-scan:hover { background: #fee2e2; }
 

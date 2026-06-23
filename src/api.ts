@@ -8,6 +8,10 @@ export interface LoginResponse {
   role: string;
 }
 
+export interface SimpleMessageResponse {
+  detail: string;
+}
+
 export interface PredictionResponse {
   label: string;
   confidence: number;
@@ -36,18 +40,58 @@ export interface ScanRecord {
   deleted_by_user?: boolean;
 }
 
-export async function register(email: string, password: string): Promise<LoginResponse> {
-  const res = await axios.post<LoginResponse>("/auth/register", { email, password });
+export interface AdminUser {
+  id: number;
+  email: string;
+  role: string;
+  is_verified?: boolean;
+  verified_at?: string | null;
+}
+
+export async function register(
+  email: string,
+  password: string
+): Promise<SimpleMessageResponse> {
+  const res = await axios.post<SimpleMessageResponse>("/auth/register", {
+    email,
+    password,
+  });
   return res.data;
 }
 
-export async function login(email: string, password: string): Promise<LoginResponse> {
-  const res = await axios.post<LoginResponse>("/auth/login", { email, password });
+export async function login(
+  email: string,
+  password: string
+): Promise<LoginResponse> {
+  const res = await axios.post<LoginResponse>("/auth/login", {
+    email,
+    password,
+  });
   return res.data;
 }
 
 export async function logout(token: string): Promise<void> {
   await axios.post(`/auth/logout?token=${token}`);
+}
+
+export async function forgotPassword(
+  email: string
+): Promise<SimpleMessageResponse> {
+  const res = await axios.post<SimpleMessageResponse>("/auth/forgot-password", {
+    email,
+  });
+  return res.data;
+}
+
+export async function resetPassword(
+  token: string,
+  newPassword: string
+): Promise<SimpleMessageResponse> {
+  const res = await axios.post<SimpleMessageResponse>("/auth/reset-password", {
+    token,
+    new_password: newPassword,
+  });
+  return res.data;
 }
 
 export async function predict(
@@ -62,14 +106,23 @@ export async function predict(
   formData.append("file", file);
   formData.append("patient_name", patientName);
   formData.append("patient_id", patientId);
-  if (patientAge !== undefined) formData.append("patient_age", patientAge);
-  if (eye) formData.append("eye", eye);
+
+  if (patientAge !== undefined && patientAge !== "") {
+    formData.append("patient_age", patientAge);
+  }
+
+  if (eye) {
+    formData.append("eye", eye);
+  }
 
   const res = await axios.post<PredictionResponse>(
     `/predict?token=${token}`,
     formData,
-    { headers: { "Content-Type": "multipart/form-data" } }
+    {
+      headers: { "Content-Type": "multipart/form-data" },
+    }
   );
+
   return res.data;
 }
 
@@ -82,8 +135,13 @@ export async function deleteScan(scanId: number, token: string): Promise<void> {
   await axios.delete(`/scans/${scanId}?token=${token}`);
 }
 
-export async function downloadReport(scanId: number, token: string): Promise<Blob> {
-  const res = await axios.get(`/report/${scanId}?token=${token}`, { responseType: "blob" });
+export async function downloadReport(
+  scanId: number,
+  token: string
+): Promise<Blob> {
+  const res = await axios.get(`/report/${scanId}?token=${token}`, {
+    responseType: "blob",
+  });
   return res.data;
 }
 
@@ -92,7 +150,7 @@ export async function adminFetchAllScans(token: string): Promise<ScanRecord[]> {
   return res.data;
 }
 
-export async function adminFetchUsers(token: string): Promise<{ id: number; email: string; role: string }[]> {
-  const res = await axios.get(`/admin/users?token=${token}`);
+export async function adminFetchUsers(token: string): Promise<AdminUser[]> {
+  const res = await axios.get<AdminUser[]>(`/admin/users?token=${token}`);
   return res.data;
 }

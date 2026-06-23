@@ -1,18 +1,20 @@
 // src/LandingPage.tsx
 import "./LandingPage.css";
+import odLogo from "./assets/Logo.png";
+import eyeLogo from "./assets/eye logo.png";
 
 interface Props {
   onEnter: () => void;
+  onTeam:  () => void;   // ← add this
 }
 
-export default function LandingPage({ onEnter }: Props) {
+export default function LandingPage({ onEnter, onTeam }: Props) {
   return (
     <div className="landing">
       {/* NAV */}
       <nav className="landing-nav">
-        <div className="landing-nav-logo">
-          <div className="logo-circle">OD</div>
-          <span className="logo-text">OpthaDetect</span>
+        <div className="landing-nav-logo" onClick={() => window.scrollTo(0,0)} style={{ cursor: "pointer" }}>
+          <img src={odLogo} alt="OpthaDetect" className="logo-img" />
         </div>
         <button className="landing-nav-cta" onClick={onEnter}>
           Clinician Login →
@@ -21,7 +23,7 @@ export default function LandingPage({ onEnter }: Props) {
 
       {/* HERO */}
       <section className="hero">
-        <div className="hero-eyebrow">AI-Assisted Ophthalmic Screening</div>
+        <div className="hero-eyebrow"></div>
         <h1 className="hero-title">
           Detect Diabetic Retinopathy
           <br />
@@ -30,8 +32,14 @@ export default function LandingPage({ onEnter }: Props) {
         <p className="hero-desc">
           OpthaDetect uses deep learning to classify retinal fundus photographs
           for Diabetic Retinopathy and generates Grad-CAM heatmaps that
-          highlight clinically relevant regions — giving clinicians a powerful
+          highlight clinically relevant regions, giving clinicians a powerful
           second opinion in seconds.
+        </p>
+        <p className="hero-desc hero-desc--africa">
+        Africa faces one of the world’s highest burdens of diabetic retinopathy,
+        while retinal screening remains limited outside major urban centres.
+        OpthaDetect is designed to support screening in low-resource settings,
+        bringing AI-powered detection closer to frontline care.
         </p>
         <div className="hero-actions">
           <button className="btn-hero-primary" onClick={onEnter}>
@@ -46,23 +54,52 @@ export default function LandingPage({ onEnter }: Props) {
         </div>
       </section>
 
-      {/* STATS STRIP */}
-      <div className="stats-strip">
-        <div className="stat">
-          <span className="stat-number">537M+</span>
-          <span className="stat-label">adults living with diabetes worldwide</span>
-        </div>
-        <div className="stat-divider" />
-        <div className="stat">
-          <span className="stat-number">~35%</span>
-          <span className="stat-label">of diabetic patients develop retinopathy</span>
-        </div>
-        <div className="stat-divider" />
-        <div className="stat">
-          <span className="stat-number">90%</span>
-          <span className="stat-label">vision loss preventable with early detection</span>
+      {/* GLOBAL STATS STRIP */}
+      <div className="stats-strip stats-strip--global">
+        <div className="stats-strip-inner">
+          <div className="stats-strip-label">🌍 Globally</div>
+          <div className="stats-strip-stats">
+            <div className="stat">
+              <span className="stat-number">537M+</span>
+              <span className="stat-label">adults living with diabetes worldwide</span>
+            </div>
+            <div className="stat-divider" />
+            <div className="stat">
+              <span className="stat-number">~35%</span>
+              <span className="stat-label">of diabetic patients develop retinopathy</span>
+            </div>
+            <div className="stat-divider" />
+            <div className="stat">
+              <span className="stat-number">90%</span>
+              <span className="stat-label">vision loss preventable with early detection</span>
+            </div>
+          </div>
         </div>
       </div>
+     
+
+        {/* AFRICA STATS STRIP */}
+        <div className="stats-strip stats-strip--africa">
+          <div className="stats-strip-inner">
+            <div className="stats-strip-label">🌍 Africa</div>
+            <div className="stats-strip-stats">          {/* ← wraps all 3 stats */}
+              <div className="stat">
+                <span className="stat-number">47M</span>
+                <span className="stat-label">adults projected to have diabetes across Africa by 2045</span>
+              </div>
+              <div className="stat-divider" />
+              <div className="stat">
+                <span className="stat-number">28%</span>
+                <span className="stat-label">pooled diabetic retinopathy prevalence reported across East Africa</span>
+              </div>
+              <div className="stat-divider" />
+              <div className="stat">
+                <span className="stat-number">50%</span>
+                <span className="stat-label">of patients with untreated proliferative diabetic retinopathy may become legally blind within 5 years</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
       {/* HOW IT WORKS */}
       <section className="section" id="how-it-works">
@@ -111,7 +148,7 @@ export default function LandingPage({ onEnter }: Props) {
             <h3>Individual clinician accounts</h3>
             <p>
               Every clinician registers their own account. Scan history is
-              private — only the uploader can see their patients' data.
+              private, only the clinician can see their patients' data.
             </p>
           </div>
           <div className="feature-card">
@@ -135,7 +172,7 @@ export default function LandingPage({ onEnter }: Props) {
             <h3>Right to erasure (GDPR)</h3>
             <p>
               Clinicians and patients can request deletion of any uploaded scan
-              at any time — we make it easy.
+              at any time, we make it easy.
             </p>
           </div>
         </div>
@@ -160,8 +197,8 @@ export default function LandingPage({ onEnter }: Props) {
                 <p>
                   Only the clinician or medical professional who uploads a
                   patient's fundus image can access the resulting scan,
-                  prediction, and report. No other user — including other
-                  clinicians — can view your patients' data.
+                  prediction, and report. No other user, including other
+                  clinicians can view your patients' data.
                 </p>
               </div>
             </div>
@@ -224,8 +261,8 @@ export default function LandingPage({ onEnter }: Props) {
                 <p>
                   For any data privacy enquiries, subject access requests, or
                   erasure requests, please contact{" "}
-                  <a href="mailto:privacy@opthadetect.dev">
-                    privacy@opthadetect.dev
+                  <a href="mailto:privacy@opthadetect.com">
+                    privacy@opthadetect.com
                   </a>
                   .
                 </p>
@@ -234,6 +271,14 @@ export default function LandingPage({ onEnter }: Props) {
           </div>
         </div>
       </section>
+
+
+    {/* MEET THE TEAM */}
+    <section className="section team-preview-section" id="team">
+      <button className="btn-hero-primary" onClick={onTeam}>
+        Meet the Team
+      </button>
+    </section>
 
       {/* CTA BANNER */}
       <section className="cta-banner">
@@ -245,21 +290,34 @@ export default function LandingPage({ onEnter }: Props) {
       </section>
 
       {/* FOOTER */}
-      <footer className="landing-footer">
-        <div className="landing-footer-logo">
-          <div className="logo-circle small">OD</div>
-          <span>OpthaDetect</span>
-        </div>
-        <p>
-          Prototype ophthalmic decision-support tool. Not approved for independent
-          clinical use. © {new Date().getFullYear()} OpthaDetect.
-        </p>
-        <div className="footer-links">
-          <a href="#privacy">Privacy Policy</a>
-          <span>·</span>
-          <a href="mailto:privacy@opthadetect.dev">Contact</a>
-        </div>
-      </footer>
+    <footer className="landing-footer">
+      <div className="landing-footer-logo">
+        <img src={eyeLogo} alt="OpthaDetect" className="logo-img-circle" />
+        <span>OpthaDetect</span>
+      </div>
+      <p>
+        Prototype ophthalmic decision-support tool. Not approved for independent
+        clinical use. © {new Date().getFullYear()} OpthaDetect.
+      </p>
+      <div className="footer-links">
+        <a href="#privacy">Privacy Policy</a>
+        <span>·</span>
+        <a href="mailto:privacy@opthadetect.com">Contact</a>
+      </div>
+      <div className="footer-social">
+        <a href="https://www.linkedin.com/company/opthadetect" target="_blank" rel="noopener noreferrer" className="social-link">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+          </svg>
+        </a>
+        <a href="https://x.com/opthadetect" target="_blank" rel="noopener noreferrer" className="social-link">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+          </svg>
+        </a>
+      </div>
+    </footer>
     </div>
   );
 }
+

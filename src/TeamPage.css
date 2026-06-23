@@ -1,0 +1,121 @@
+/* src/TeamPage.css */
+
+.team-hero {
+  min-height: 38vh;
+  background: #071529;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 9rem 2rem 5rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.team-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,184,169,0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+.team-hero-eyebrow {
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #00b8a9;
+  margin-bottom: 1rem;
+  animation: fadeUp 0.6s ease 0.1s both;
+}
+.team-hero-title {
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.1;
+  margin: 0 0 1rem;
+  animation: fadeUp 0.6s ease 0.25s both;
+}
+.team-hero-sub {
+  color: rgba(255,255,255,0.55);
+  font-size: 1rem;
+  max-width: 520px;
+  line-height: 1.7;
+  animation: fadeUp 0.6s ease 0.4s both;
+}
+.team-cards-section {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 4rem 2rem 6rem;
+}
+.team-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 2.5rem;
+}
+.team-card {
+  background: #fff;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,0.07);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: fadeUp 0.7s ease both;
+}
+.team-card:nth-child(1) { animation-delay: 0.1s; }
+.team-card:nth-child(2) { animation-delay: 0.25s; }
+.team-card:nth-child(3) { animation-delay: 0.4s; }
+.team-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.1);
+}
+.team-card-img-wrap {
+  position: relative;
+  height: 300px;
+  overflow: hidden;
+  background: #0d1f3c;
+}
+.team-card-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+  transition: transform 0.5s ease;
+}
+/* Rodiyah - headshot */
+.team-card:nth-child(1) .team-card-img-wrap img { object-position: center 20%; }
+/* Muhammed - speaking */
+.team-card:nth-child(2) .team-card-img-wrap img { object-position: center 50%; }
+/* Adewunmi - show face not building */
+.team-card:nth-child(3) .team-card-img-wrap img { object-position: center 70%; }
+
+.team-card:hover .team-card-img-wrap img { transform: scale(1.04); }
+.team-badge {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.28rem 0.7rem;
+  border-radius: 100px;
+  font-weight: 600;
+}
+.badge--founder { background: #00b8a9; color: #fff; }
+.badge--advisor { background: #f5a623; color: #0d1f3c; }
+.team-card-body { padding: 1.6rem 1.8rem 2rem; }
+.team-card-name { font-size: 1.25rem; font-weight: 700; color: #0d1f3c; margin: 0 0 0.25rem; }
+.team-card-role { font-size: 0.75rem; letter-spacing: 0.05em; text-transform: uppercase; color: #00b8a9; margin: 0 0 1rem; }
+.team-card-bio { font-size: 0.875rem; line-height: 1.75; color: #5a6a80; margin: 0 0 0.6rem; }
+.team-skills { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 1.1rem; }
+.team-skill-tag { font-size: 0.68rem; background: rgba(0,184,169,0.08); border: 1px solid rgba(0,184,169,0.25); color: #0d1f3c; padding: 0.25rem 0.6rem; border-radius: 100px; }
+.team-skill-tag--gold { background: rgba(245,166,35,0.08); border-color: rgba(245,166,35,0.35); }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (max-width: 600px) {
+  .team-cards { grid-template-columns: 1fr; }
+  .team-hero  { padding: 8rem 1.5rem 4rem; }
+}

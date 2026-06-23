@@ -52,6 +52,20 @@
   color: #0f172a;
 }
 
+.logo-img {
+  height: 48px;
+  width: auto;
+  object-fit: contain;
+}
+
+.logo-img-circle {
+  height: 56px;
+  width: 56px;
+  object-fit: contain;
+  border-radius: 50%;
+  background: #0d1f3c;
+}
+
 .landing-nav-cta {
   background: #2563eb;
   color: #fff;
@@ -146,43 +160,91 @@
   color: #94a3b8;
 }
 
+
 /* STATS */
 .stats-strip {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 0;
   background: #0f172a;
   color: #fff;
   padding: 32px 40px;
-  flex-wrap: wrap;
-  gap: 0;
 }
 
+.stats-strip--global,
+.stats-strip--africa {
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 40px 32px;
+}
+
+.stats-strip--africa {
+  background: #0c2340;
+}
+
+.stats-strip-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 16px;
+}
+
+/* 🔥 PREMIUM GRID */
+.stats-strip-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  width: 100%;
+}
+
+/* 🔥 CARD STYLE */
 .stat {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 20px 16px;
   text-align: center;
-  padding: 0 40px;
+  backdrop-filter: blur(6px);
+  transition: 0.2s ease;
+}
+
+.stat:hover {
+  transform: translateY(-3px);
 }
 
 .stat-number {
   display: block;
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 800;
   color: #38bdf8;
+  margin-bottom: 8px;
 }
 
 .stat-label {
   font-size: 13px;
-  color: #94a3b8;
+  color: #cbd5f5;
+  line-height: 1.5;
   max-width: 160px;
-  display: block;
-  margin: 4px auto 0;
+  margin: 0 auto;
 }
 
+/* REMOVE DIVIDER (not needed anymore) */
 .stat-divider {
-  width: 1px;
-  height: 48px;
-  background: #334155;
+  display: none;
+}
+
+.stats-strip-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #38bdf8;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.team-preview-section {
+  text-align: center;
+  padding: 4rem 2rem;
 }
 
 /* SECTIONS */
@@ -192,6 +254,7 @@
   margin: 0 auto;
 }
 
+
 .section-label {
   font-size: 13px;
   font-weight: 600;
@@ -199,6 +262,7 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin-bottom: 12px;
+  text-align: center;   /* ✅ ADD THIS */
 }
 
 .section-title {
@@ -206,8 +270,8 @@
   font-weight: 700;
   margin: 0 0 40px;
   letter-spacing: -0.01em;
+  text-align: center;   /* ✅ ADD THIS */
 }
-
 /* STEPS */
 .steps {
   display: flex;
@@ -261,44 +325,44 @@
 /* FEATURES */
 .features-section {
   background: #f8fafc;
-  max-width: 100%;
-  padding: 72px 40px;
 }
 
-.features-section > * {
-  max-width: 1100px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
+/* Headings aligned like other sections */
 .features-section .section-label,
 .features-section .section-title {
-  max-width: 1100px;
-  margin-left: auto;
-  margin-right: auto;
+  text-align: center;
 }
 
+/* GRID */
 .features-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 20px;
-  max-width: 1100px;
-  margin: 0 auto;
+  margin-top: 32px;
 }
 
+/* CARDS */
 .feature-card {
   background: #fff;
   border-radius: 16px;
   padding: 24px;
   border: 1px solid #e2e8f0;
   box-shadow: 0 2px 8px rgba(15,23,42,0.04);
+  transition: all 0.2s ease;
 }
 
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(15,23,42,0.08);
+}
+
+/* ICON */
 .feature-icon {
   font-size: 28px;
   margin-bottom: 12px;
 }
 
+/* TEXT */
 .feature-card h3 {
   font-size: 16px;
   margin: 0 0 8px;
@@ -310,7 +374,6 @@
   line-height: 1.6;
   margin: 0;
 }
-
 /* PRIVACY */
 .privacy-box {
   background: #f0fdf4;
@@ -399,6 +462,7 @@
   margin-bottom: 10px;
   color: #e2e8f0;
   font-weight: 600;
+  font-size: 1.2rem;  
 }
 
 .landing-footer p {
@@ -420,10 +484,48 @@
 }
 
 @media (max-width: 700px) {
-  .stats-strip { flex-direction: column; gap: 24px; }
-  .stat-divider { display: none; }
+  .stats-strip { 
+    flex-direction: column; 
+    gap: 24px; 
+  }
+
+  /* 🔥 STACK CARDS NICELY */
+  .stats-strip-stats {
+    grid-template-columns: 1fr;
+  }
+
   .steps { flex-direction: column; }
   .step-arrow { transform: rotate(90deg); }
   .section { padding: 48px 20px; }
   .landing-nav { padding: 12px 20px; }
+}
+
+@media (max-width: 900px) {
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.footer-social {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 14px;
+}
+
+.social-link {
+  color: #60a5fa;
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.social-link:hover {
+  color: #fff;
 }
